@@ -38,7 +38,7 @@ let ctn;
 	nextitem.style.height = 4 * cfg.scale + 'px';
 }
 let colors = {
-	0: '#6a6a6a',
+	0: '#dadada',
 	1: '#51b4ff',
 	2: '#ffe84c',
 	3: '#d54097',
@@ -175,10 +175,17 @@ let tetr = {
 		 [0,0,1,0]]
 	]
 };
-let drawBlock = function(x, y, c, cto) {
+let drawBlock = function(x, y, c, cto, a) {
 	let ctv = cto || ctx;
 	ctv.fillStyle = colors[c] || 'white';
 	ctv.fillRect(Math.round(x * cfg.dps), Math.round((19 - y) * cfg.dps), cfg.dps, cfg.dps);
+	if (c != 0) {
+		ctv.strokeStyle = 'rgba(0, 0, 0, 0.3)';
+		ctv.lineWidth = 2;
+		ctv.beginPath();
+		ctv.rect(Math.round(x * cfg.dps + 1), Math.round((19 - y) * cfg.dps + 1), cfg.dps - 2, cfg.dps - 2);
+		ctv.stroke();
+	}
 };
 let grid;
 let resetGrid = function() {
@@ -252,13 +259,15 @@ let ActiveTetr = class ActiveTetr {
 					if (qx > 9) dx = -(qx - 9);
 					if (grid[qy] && grid[qy][qx] > 0 && grid[qy][qx - 1] > 0) dx = 1;
 					if (grid[qy] && grid[qy][qx] > 0 && grid[qy][qx + 1] > 0) dx = -1;
+					if (grid[qy] && grid[qy][qx] > 0 && grid[qy + 1][qx] > 0) dy = 1;
+					if (grid[qy] && grid[qy][qx] > 0 && grid[qy - 1][qx] > 0) dy = -1;
 				}
 			}
 		}
 		return dx == 0 && dy == 0 ? false : [dx, dy];
 	}
 	move(x, y) {
-		if (this.hasCollided()) return;
+		if (y !== 0 && this.hasCollided()) y = 0;
 		this.x = !isNaN(x) ? this.x + x : this.x;
 		this.y = !isNaN(y) ? this.y - y : this.y;
 		let dlp = this.isOutOfBounds();
@@ -352,13 +361,13 @@ gameLoop();
 	window.addEventListener('keydown', function(e) {
 		if (currentTile) {
 			if (e.which == 72) {
-				currentTile.move(-1);
+				currentTile.move(-1, 0);
 			} else if (e.which == 74) {
 				currentTile.rotate(-1);
 			} else if (e.which == 75) {
 				currentTile.rotate(1);
 			} else if (e.which == 76) {
-				currentTile.move(1);
+				currentTile.move(1, 0);
 			} else if (e.which == 32) {
 				currentTile.move(0, 1);
 			}
